@@ -3,19 +3,19 @@ const mongoose = require('mongoose')
 const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
-        required: true
+        required: false
     },
     lastName: {
         type: String,
-        required: true
+        required: false
     },
     city: {
         type: String,
-        required: true
+        required: false
     },
     phoneNumber: {
         type: Number,
-        required: true
+        required: false
     },
     email: {
         type: String,
@@ -28,11 +28,21 @@ const userSchema = new mongoose.Schema({
     },
     agreeToTerms: {
         type: Boolean,
-        required: true
+        required: false
     },
     salt: {
         type: String,
-        required: true
+        required: false
+    },
+    created_at: {
+        type: Date,
+        default: Date.now
+    },
+    role: {
+        type: String,
+        required: true,
+        enum: ['user', 'admin'],
+        default: 'user'
     }
 })
 
