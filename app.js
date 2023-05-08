@@ -26,7 +26,7 @@ app.get('/signup', (req, res) => {
 
 app.post('/signup', async (req, res) => {
 
-    const { email, password, firstName, lastName, phoneNumber, city, agreeToTerms } = req.body
+    const { email, password, firstName, lastName, agreeToTerms } = req.body
 
     const saltHash = utils.genPassword(password)
     const salt = saltHash.salt
@@ -46,8 +46,6 @@ app.post('/signup', async (req, res) => {
             salt: salt,
             firstName,
             lastName,
-            phoneNumber,
-            city,
             agreeToTerms
         })
 
@@ -74,7 +72,6 @@ app.get('/login', (req, res) => {
 })
 
 
-
 app.post('/login', (req, res, next) => {
 
     const { email, password } = req.body
@@ -84,12 +81,12 @@ app.post('/login', (req, res, next) => {
         .then((user) => {
 
             if (!user) {
-                res.status(401).json({ success: false, msg: 'User not found' })
+                res.status(401).json({ success: false, msg: 'user not found' })
             }
 
-            const isvalid = utils.validPassword(password, user.password, user.salt)
+            const isValid = utils.validPassword(password, user.password, user.salt)
 
-            if (isvalid) {
+            if (isValid) {
 
                 const tokenObject = utils.issueJWT(user)
 
@@ -97,7 +94,7 @@ app.post('/login', (req, res, next) => {
 
             } else {
 
-                res.status(401).json({ success: false, msg: "you entered the wrong password" })
+                res.status(401).json({ success: false, msg: "wrong password" })
 
             }
         })
