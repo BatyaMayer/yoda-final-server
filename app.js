@@ -6,8 +6,8 @@ const passport = require('passport')
 const User = require('./mongo/userSchema')
 require('dotenv').config()
 require('./passport/config')(passport)
+const validationSchema = require('./mongo/validationSchema')
 const utils = require('./passport/utils')
-// const genKeyPair = require('./genKeyPair')
 
 const PORT = 999
 const app = express()
@@ -20,63 +20,70 @@ app.use(cors())
 
 app.use(express.static(path.join(__dirname, 'public')))
 
-// genKeyPair()
 
 app.get('/signup', (req, res) => {
     console.log('signup page')
 })
 
 app.post('/signup', async (req, res) => {
-    const { email, password, firstName, lastName, agreeToTerms } = req.body
 
-    const saltHash = utils.genPassword(password)
-    const salt = saltHash.salt
-    const hash = saltHash.hash
+    const validationResult = await validationSchema.validate(req.body)
 
-    try {
-        const existingUser = await User.findOne({ email: email })
+    if (validationResult.error) {
+        return res.status(422).json({ success: false, data: null, error: validationResult.error.details[0].message })
+    } else {
 
-        if (existingUser) {
-            return res.status(409).json({
-                success: false,
-                data: null,
-                error: { email: 'Email already exists' },
-            })
-        }
+        const { email, password, firstName, lastName, agreeToTerms } = req.body
 
-        const newUser = await User.create({
-            email,
-            password: hash,
-            salt: salt,
-            firstName,
-            lastName,
-            agreeToTerms,
-        })
+        const saltHash = utils.genPassword(password)
+        const salt = saltHash.salt
+        const hash = saltHash.hash
 
         try {
-            newUser.save().then((user) => {
-                const tokenObject = utils.issueJWT(user)
+            const existingUser = await User.findOne({ email: email })
 
-                res.status(200).json({
-                    success: true,
-                    data: {
-                        user: user,
-                        token: tokenObject.token.split(' ')[1],
-                        expiresIn: tokenObject.expires,
-                    },
-                    error: null,
+            if (existingUser) {
+                return res.status(409).json({
+                    success: false,
+                    data: null,
+                    error: { email: 'Email already exists' },
                 })
-                console.log(newUser)
+            }
+
+            const newUser = await User.create({
+                email,
+                password: hash,
+                salt: salt,
+                firstName,
+                lastName,
+                agreeToTerms,
             })
+
+            try {
+                newUser.save().then((user) => {
+                    const tokenObject = utils.issueJWT(user)
+
+                    res.status(200).json({
+                        success: true,
+                        data: {
+                            token: tokenObject.token.split(' ')[1],
+                            expiresIn: tokenObject.expires,
+                        },
+                        error: null,
+                    })
+                    console.log(newUser)
+                })
+            } catch (err) {
+                console.log(err)
+                res.status(500).json({ success: false, data: null, error: err })
+            }
         } catch (err) {
             console.log(err)
             res.status(500).json({ success: false, data: null, error: err })
         }
-    } catch (err) {
-        console.log(err)
-        res.status(500).json({ success: false, data: null, error: err })
     }
 })
+
 
 
 app.get('/login', (req, res) => {

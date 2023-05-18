@@ -32,7 +32,6 @@ function genKeyPair() {
       } catch (err) {
         console.error('Error creating PEM files:', err);
       }
-      
-}
+      }
 
 module.exports = genKeyPair;

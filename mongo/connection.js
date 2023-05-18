@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 require('dotenv').config()
-const genKeyPair = require('../genKeyPair')
+const genKeyPair = require('../passport/genKeyPair')
 
 async function connect() {
     try {
