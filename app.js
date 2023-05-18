@@ -1,5 +1,4 @@
 const express = require('express')
-const bcrypt = require('bcrypt')
 require('./mongo/connection')
 const cors = require('cors')
 const path = require('path')
@@ -8,6 +7,7 @@ const User = require('./mongo/userSchema')
 require('dotenv').config()
 require('./passport/config')(passport)
 const utils = require('./passport/utils')
+// const genKeyPair = require('./genKeyPair')
 
 const PORT = 999
 const app = express()
@@ -20,12 +20,13 @@ app.use(cors())
 
 app.use(express.static(path.join(__dirname, 'public')))
 
+// genKeyPair()
+
 app.get('/signup', (req, res) => {
     console.log('signup page')
 })
 
 app.post('/signup', async (req, res) => {
-
     const { email, password, firstName, lastName, agreeToTerms } = req.body
 
     const saltHash = utils.genPassword(password)
@@ -34,9 +35,12 @@ app.post('/signup', async (req, res) => {
 
     try {
         const existingUser = await User.findOne({ email: email })
+
         if (existingUser) {
             return res.status(409).json({
-                errors: { email: 'Email already exists' }
+                success: false,
+                data: null,
+                error: { email: 'Email already exists' },
             })
         }
 
@@ -46,62 +50,69 @@ app.post('/signup', async (req, res) => {
             salt: salt,
             firstName,
             lastName,
-            agreeToTerms
+            agreeToTerms,
         })
 
         try {
             newUser.save().then((user) => {
-
                 const tokenObject = utils.issueJWT(user)
 
-                res.status(200).json({ success: true, user: user, token: tokenObject.token, expiresIn: tokenObject.expires })
+                res.status(200).json({
+                    success: true,
+                    data: {
+                        user: user,
+                        token: tokenObject.token.split(' ')[1],
+                        expiresIn: tokenObject.expires,
+                    },
+                    error: null,
+                })
                 console.log(newUser)
             })
         } catch (err) {
             console.log(err)
-            res.status(500).json(err)
+            res.status(500).json({ success: false, data: null, error: err })
         }
     } catch (err) {
         console.log(err)
-        res.status(500).json(err)
+        res.status(500).json({ success: false, data: null, error: err })
     }
 })
+
 
 app.get('/login', (req, res) => {
     console.log('login page')
 })
 
 
-app.post('/login', (req, res, next) => {
+app.post('/login', async (req, res, next) => {
+    try {
+        const { email, password } = req.body
+        const user = await User.findOne({ email: email })
 
-    const { email, password } = req.body
+        if (!user) {
+            return res.status(401).json({ success: false, data: null, error: 'user not found' })
+        }
 
-    User.findOne({ email: email })
+        const isValid = utils.validPassword(password, user.password, user.salt)
 
-        .then((user) => {
+        if (isValid) {
+            const { firstName, lastName, email } = user
+            const tokenObject = utils.issueJWT(user)
+            const token = tokenObject.token.split(' ')[1]
 
-            if (!user) {
-                res.status(401).json({ success: false, msg: 'user not found' })
-            }
-
-            const isValid = utils.validPassword(password, user.password, user.salt)
-
-            if (isValid) {
-
-                const tokenObject = utils.issueJWT(user)
-
-                res.status(200).json({ success: true, user: user, token: tokenObject.token, expiresIn: tokenObject.expires })
-
-            } else {
-
-                res.status(401).json({ success: false, msg: "wrong password" })
-
-            }
-        })
-        .catch((err) => {
-            next(err)
-        })
-
+            res.status(200).json({
+                success: true,
+                data: { firstName, lastName, email, token },
+                error: null,
+            })
+        } else {
+            res.status(401).json({ success: false, data: null, error: 'wrong password' })
+        }
+    } catch (err) {
+        next(err)
+    }
 })
+
+
 
 app.listen(PORT, () => console.log('server up'))

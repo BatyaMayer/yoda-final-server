@@ -1,9 +1,12 @@
 const crypto = require('crypto')
 const fs = require('fs')
 
+
 function genKeyPair() {
 
-    // Generates an object where the keys are stored in properties `privateKey` and `publicKey`
+    const publicKeyPath = './id_rsa_pub.pem';
+    const privateKeyPath = './id_rsa_priv.pem';
+
     const keyPair = crypto.generateKeyPairSync('rsa', {
         modulusLength: 4096, // standard for RSA keys
         publicKeyEncoding: {
@@ -16,13 +19,20 @@ function genKeyPair() {
         }
     })
 
-    // Create public key file
-    fs.writeFileSync(__dirname + '/id_rsa_pub.pem', keyPair.publicKey)
-
-    // Create private key file
-    fs.writeFileSync(__dirname + '/id_rsa_priv.pem', keyPair.privateKey)
-
+    
+    try {
+        if (!fs.existsSync(publicKeyPath)) {
+          fs.writeFileSync(publicKeyPath, keyPair.publicKey);
+        }
+      
+        if (!fs.existsSync(privateKeyPath)) {
+          fs.writeFileSync(privateKeyPath, keyPair.privateKey);
+        }
+        console.log('PEM files created successfully.');
+      } catch (err) {
+        console.error('Error creating PEM files:', err);
+      }
+      
 }
 
-
-genKeyPair()
+module.exports = genKeyPair;
