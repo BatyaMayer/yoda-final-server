@@ -1,125 +1,27 @@
-const express = require('express')
-require('./mongo/connection')
-const cors = require('cors')
-const path = require('path')
-const passport = require('passport')
-const User = require('./mongo/userSchema')
-require('dotenv').config()
-require('./passport/config')(passport)
-const validationSchema = require('./mongo/validationSchema')
-const utils = require('./passport/utils')
+const express = require('express');
+require('./mongo/connection');
+const cors = require('cors');
+const path = require('path');
+const passport = require('passport');
+const User = require('./mongo/userSchema');
+require('dotenv').config();
+require('./passport/config')(passport);
+const signupRouter = require('./routes/signup');
+const loginRouter = require('./routes/login');
 
-const PORT = 999
-const app = express()
+const PORT = 999;
+const app = express();
 
-app.use(passport.initialize())
+app.use(passport.initialize());
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use(cors())
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 
-app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.static(path.join(__dirname, 'public')));
 
+// Routes
+app.use('/api/signup', signupRouter);
+app.use('/api/login', loginRouter);
 
-app.get('/signup', (req, res) => {
-    console.log('signup page')
-})
-
-app.post('/signup', async (req, res) => {
-
-    const validationResult = await validationSchema.validate(req.body)
-
-    if (validationResult.error) {
-        return res.status(422).json({ success: false, data: null, error: validationResult.error.details[0].message })
-    } else {
-
-        const { email, password, firstName, lastName, agreeToTerms } = req.body
-
-        const saltHash = utils.genPassword(password)
-        const salt = saltHash.salt
-        const hash = saltHash.hash
-
-        try {
-            const existingUser = await User.findOne({ email: email })
-
-            if (existingUser) {
-                return res.status(409).json({
-                    success: false,
-                    data: null,
-                    error: { email: 'Email already exists' },
-                })
-            }
-
-            const newUser = await User.create({
-                email,
-                password: hash,
-                salt: salt,
-                firstName,
-                lastName,
-                agreeToTerms,
-            })
-
-            try {
-                newUser.save().then((user) => {
-                    const tokenObject = utils.issueJWT(user)
-
-                    res.status(200).json({
-                        success: true,
-                        data: {
-                            token: tokenObject.token.split(' ')[1],
-                            expiresIn: tokenObject.expires,
-                        },
-                        error: null,
-                    })
-                    console.log(newUser)
-                })
-            } catch (err) {
-                console.log(err)
-                res.status(500).json({ success: false, data: null, error: err })
-            }
-        } catch (err) {
-            console.log(err)
-            res.status(500).json({ success: false, data: null, error: err })
-        }
-    }
-})
-
-
-
-app.get('/login', (req, res) => {
-    console.log('login page')
-})
-
-
-app.post('/login', async (req, res, next) => {
-    try {
-        const { email, password } = req.body
-        const user = await User.findOne({ email: email })
-
-        if (!user) {
-            return res.status(401).json({ success: false, data: null, error: 'user not found' })
-        }
-
-        const isValid = utils.validPassword(password, user.password, user.salt)
-
-        if (isValid) {
-            const { firstName, lastName, email } = user
-            const tokenObject = utils.issueJWT(user)
-            const token = tokenObject.token.split(' ')[1]
-
-            res.status(200).json({
-                success: true,
-                data: { firstName, lastName, email, token },
-                error: null,
-            })
-        } else {
-            res.status(401).json({ success: false, data: null, error: 'wrong password' })
-        }
-    } catch (err) {
-        next(err)
-    }
-})
-
-
-
-app.listen(PORT, () => console.log('server up'))
+app.listen(PORT, () => console.log('Server up on port', PORT));
