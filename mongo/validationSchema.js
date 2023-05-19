@@ -1,6 +1,6 @@
 const Joi = require('joi')
 
-const validationSchema = Joi.object({
+const signupValidationSchema = Joi.object({
     firstName: Joi.string().min(2).max(20).required().pattern(/^[A-Za-z]+$/),
     lastName: Joi.string().min(2).max(20).required().pattern(/^[A-Za-z]+$/),
     email: Joi.string().email().required(),
@@ -9,4 +9,13 @@ const validationSchema = Joi.object({
     agreeToTerms: Joi.boolean().required().valid(true)
 })
 
-module.exports = validationSchema
+const loginValidationSchema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).pattern(/^(?=.*[a-zA-Z])(?=.*\d).+/),
+})
+
+module.exports = {
+    signupValidationSchema,
+    loginValidationSchema
+
+}

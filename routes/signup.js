@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../mongo/userSchema');
-const validationSchema = require('../mongo/validationSchema');
+const {signupValidationSchema} = require('../mongo/validationSchema');
 const utils = require('../passport/utils');
 
 router.post('/', async (req, res) => {
-  const validationResult = await validationSchema.validate(req.body);
+  const validationResult = await signupValidationSchema.validate(req.body);
 
   if (validationResult.error) {
     return res.status(422).json({
