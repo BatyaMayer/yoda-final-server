@@ -3,12 +3,8 @@ const jsonwebtoken = require('jsonwebtoken')
 const fs = require('fs')
 const path = require('path')
 
-
-
-
-const pathToKey = path.join(__dirname, '..', 'id_rsa_priv.pem')
+const pathToKey = path.join(__dirname, 'keys', 'id_rsa_priv.pem')
 const PRIV_KEY = fs.readFileSync(pathToKey, 'utf8')
-
 
 function genPassword(password) {
     const salt = crypto.randomBytes(32).toString('hex')
@@ -28,9 +24,8 @@ function validPassword(password, hash, salt) {
 
 function issueJWT(user) {
      
-
     const __id = user.__id
-    const expiresIn = "1d"
+    const expiresIn = Math.floor(Date.now() / 1000) + (10 * 60) // 10 minutes for testing 
 
     const payload = {
         sub: __id,

@@ -1,12 +1,12 @@
 const express = require('express')
 const router = express.Router()
-const {loginValidationSchema} = require('../mongo/validationSchema')
-const User = require('../mongo/userSchema')
+const { loginValidationSchema } = require('../db/validationSchema')
+const User = require('../db/userSchema')
 const utils = require('../passport/utils')
 
 router.post('/', async (req, res, next) => {
-     const validationResult = await loginValidationSchema.validate(req.body)
-      
+    const validationResult = await loginValidationSchema.validate(req.body)
+
     if (validationResult.error) {
         return res.status(422).json({
             success: false,
