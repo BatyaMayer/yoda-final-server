@@ -4,8 +4,8 @@ const fs = require('fs')
 
 function genKeyPair() {
 
-    const publicKeyPath = './id_rsa_pub.pem';
-    const privateKeyPath = './id_rsa_priv.pem';
+    const publicKeyPath = './passport/keys/id_rsa_pub.pem';
+    const privateKeyPath = './passport/keys/id_rsa_priv.pem';
 
     const keyPair = crypto.generateKeyPairSync('rsa', {
         modulusLength: 4096, // standard for RSA keys
