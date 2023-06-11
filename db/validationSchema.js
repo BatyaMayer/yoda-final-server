@@ -14,8 +14,16 @@ const loginValidationSchema = Joi.object({
     password: Joi.string().min(6).pattern(/^(?=.*[a-zA-Z])(?=.*\d).+/),
 })
 
+const eventValidationSchema = Joi.object({
+    title: Joi.string().min(2).required(),
+    description: Joi.string().min(2).required(),
+    date: Joi.string().required(),
+    image: Joi.string()
+
+})
+
 module.exports = {
     signupValidationSchema,
-    loginValidationSchema
-
+    loginValidationSchema,
+    eventValidationSchema
 }

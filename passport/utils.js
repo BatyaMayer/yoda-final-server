@@ -21,9 +21,15 @@ function validPassword(password, hash, salt) {
     return hash === hashVerify
 }
 
+function validToken(token) {
+
+    const tokenVerify = jsonwebtoken.verify(token, PRIV_KEY, { algorithms: ['RS256'] })
+    console.log(token === tokenVerify)
+    return token === tokenVerify
+}
+
 
 function issueJWT(user) {
-     
     const __id = user.__id
     const expiresIn = Math.floor(Date.now() / 1000) + (10 * 60) // 10 minutes for testing 
 
@@ -42,4 +48,5 @@ function issueJWT(user) {
 
 module.exports.genPassword = genPassword
 module.exports.validPassword = validPassword
+module.exports.validToken = validToken
 module.exports.issueJWT = issueJWT
