@@ -15,10 +15,18 @@ const loginValidationSchema = Joi.object({
 })
 
 const eventValidationSchema = Joi.object({
-    title: Joi.string().min(2).required(),
-    description: Joi.string().min(2).required(),
-    date: Joi.string().required(),
-    image: Joi.string()
+    title: Joi.string().min(2),
+    longDesc: Joi.string().min(2),
+    shortDesc: Joi.string().min(2),
+    date: Joi.string(),
+    time: Joi.string(),
+    location: Joi.string(),
+    host: Joi.string(),
+    hostDesc: Joi.string(),
+    // tags: Joi.array, 
+    image: Joi.string(),
+    alt: Joi.string()
+
 
 })
 
