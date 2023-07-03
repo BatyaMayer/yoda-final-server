@@ -4,6 +4,26 @@ const { loginValidationSchema } = require('../db/validationSchema')
 const User = require('../db/userSchema')
 const utils = require('../passport/utils')
 
+
+
+router.get('/', async (req, res, next) => {
+    const id = req.body.id
+
+    const user = await User.findOne({ id: id })
+    const { registeredEvents } = user
+
+    if (!user) {
+        return res.status(401).json({ success: false, data: null, error: 'user not found' })
+    } else {
+        res.status(200).json({
+            success: true,
+            data: { registeredEvents },
+            error: null,
+        })
+    }
+
+})
+
 router.post('/', async (req, res, next) => {
     const validationResult = await loginValidationSchema.validate(req.body)
 
@@ -18,7 +38,7 @@ router.post('/', async (req, res, next) => {
         try {
             const { email, password } = req.body
             const user = await User.findOne({ email: email })
-
+           
             if (!user) {
                 return res.status(401).json({ success: false, data: null, error: 'user not found' })
             }
@@ -26,13 +46,13 @@ router.post('/', async (req, res, next) => {
             const isValid = utils.validPassword(password, user.password, user.salt)
 
             if (isValid) {
-                const { firstName, lastName, email } = user
+                const { firstName, lastName, email, id } = user
                 const tokenObject = utils.issueJWT(user)
                 const token = tokenObject.token.split(' ')[1]
 
                 res.status(200).json({
                     success: true,
-                    data: { firstName, lastName, email, token },
+                    data: { firstName, lastName, email, token, id },
                     error: null,
                 })
             } else {

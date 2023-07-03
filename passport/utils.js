@@ -3,8 +3,10 @@ const jsonwebtoken = require('jsonwebtoken')
 const fs = require('fs')
 const path = require('path')
 
-const pathToKey = path.join(__dirname, 'keys', 'id_rsa_priv.pem')
-const PRIV_KEY = fs.readFileSync(pathToKey, 'utf8')
+const pathToPrivKey = path.join(__dirname, 'keys', 'id_rsa_priv.pem')
+const PRIV_KEY = fs.readFileSync(pathToPrivKey, 'utf8')
+
+
 
 function genPassword(password) {
     const salt = crypto.randomBytes(32).toString('hex')
@@ -21,17 +23,33 @@ function validPassword(password, hash, salt) {
     return hash === hashVerify
 }
 
-function validToken(token) {
 
-    const tokenVerify = jsonwebtoken.verify(token, PRIV_KEY, { algorithms: ['RS256'] })
-    console.log(token === tokenVerify)
-    return token === tokenVerify
+function validateToken(req, res, next) {
+    const authHeader = req.headers['authorization']
+
+
+    if (!authHeader) {
+        return res.status(403).send({ error: 'No token provided' })
+    }
+    const token = authHeader.replace(/^Bearer\s/, '')
+
+    try {
+        const decodedToken = jsonwebtoken.verify(token, PRIV_KEY, { algorithms: ['RS256'] })
+        const userId = decodedToken.sub
+        req.user = userId
+
+        next()
+    } catch (err) {
+        return res.status(403).send({ error: 'Failed to authenticate token' })
+    }
 }
 
 
 function issueJWT(user) {
-    const __id = user.__id
-    const expiresIn = Math.floor(Date.now() / 1000) + (10 * 60) // 10 minutes for testing 
+    const __id = user._id
+
+    // const expiresIn = Math.floor(Date.now() / 1000) + (10 * 60) // 10 minutes for testing 
+    const expiresIn = '1d'
 
     const payload = {
         sub: __id,
@@ -48,5 +66,5 @@ function issueJWT(user) {
 
 module.exports.genPassword = genPassword
 module.exports.validPassword = validPassword
-module.exports.validToken = validToken
+module.exports.validateToken = validateToken
 module.exports.issueJWT = issueJWT

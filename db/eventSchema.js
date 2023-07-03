@@ -44,13 +44,18 @@ const eventSchema = new mongoose.Schema({
     },
     tags: {
         type: Array,
-   
+
 
     },
     location: {
         type: String,
         // required: true,
     },
+    registeredUsers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Users',
+        required: false
+    }],
 
     created_at: {
         type: Date,
