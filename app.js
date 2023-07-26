@@ -16,6 +16,7 @@ const connect = require('./db/connection')
 const signupRouter = require('./api/signup')
 const loginRouter = require('./api/login')
 const eventsRouter = require('./api/events')
+const usersRouter = require('./api/users')
 
 const upload = require('./middleware/upload')
 
@@ -39,6 +40,7 @@ app.use('/api/signup', signupRouter)
 app.use('/api/login', loginRouter)
 app.use(validateToken)
 app.use('/api/events', upload.single('image'), eventsRouter)
+app.use('/api/users', usersRouter)
 
 
 

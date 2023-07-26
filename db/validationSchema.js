@@ -4,9 +4,13 @@ const signupValidationSchema = Joi.object({
     firstName: Joi.string().min(2).max(20).required().pattern(/^[A-Za-z]+$/),
     lastName: Joi.string().min(2).max(20).required().pattern(/^[A-Za-z]+$/),
     email: Joi.string().email().required(),
-    password: Joi.string().min(6).pattern(/^(?=.*[a-zA-Z])(?=.*\d).+/),
+    password: Joi.string().min(6).pattern(/^(?=.*[a-zA-Z])(?=.*\d).+/).required(),
     confirmPassword: Joi.ref('password'),
-    agreeToTerms: Joi.boolean().required().valid(true)
+    agreeToTerms: Joi.boolean().required().valid(true).required(),
+    type: Joi.string().required(),
+    subjects: Joi.array().required(),
+    profileImage: Joi.string(),
+    about: Joi.string().required().min(10).max(1000)
 })
 
 const loginValidationSchema = Joi.object({

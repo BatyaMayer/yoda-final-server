@@ -282,25 +282,48 @@ router.get('/:id', async (req, res, next) => {
 
 
 
+
+
 router.get('/', async (req, res, next) => {
     try {
-        const events = await Event.find({})
+        const events = await Event.find({}).sort({ created_at: -1 }).limit(15).lean()
         if (!events || events.length === 0) {
             return res.status(404).json({ success: false, data: null, error: 'No events found' })
         }
 
-        const restructuredData = events.map(({ title, shortDesc, date, _id, image }) => ({
-            id: _id,
-            title,
-            shortDesc,
-            image: `http://localhost:999/public/uploads/${image}`,
-            date
+        async function getRegisteredUserDetails(userIds) {
+            let userDetails = await Promise.all(userIds.map(async (id) => {
+                const user = await User.findById(id).lean()
+                if (user) {
+                    return {
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        profileImage: `http://localhost:999/public/uploads/${user.profileImage}`,
+                    }
+                } else {
+                    return null
+                }
+            }))
+            return userDetails.filter(user => user) // remove nulls
+        }
+
+        let restructuredData = await Promise.all(events.map(async ({ title, shortDesc, date, _id, image, registeredUsers }) => {
+            return {
+                id: _id,
+                title,
+                shortDesc,
+                image: `http://localhost:999/public/uploads/${image}`,
+                date,
+                registeredUsers: await getRegisteredUserDetails(registeredUsers),
+            }
         }))
 
         res.status(200).json({ success: true, data: restructuredData, error: null })
     } catch (error) {
+        console.error(error)
         res.status(500).json({ success: false, data: null, error: 'Internal server error' })
     }
 })
+
 
 module.exports = router

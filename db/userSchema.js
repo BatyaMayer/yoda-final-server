@@ -5,16 +5,20 @@ const Event = require('./eventSchema')
 const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
-        required: false
+        required: true
     },
     lastName: {
         type: String,
-        required: false
+        required: true
     },
     email: {
         type: String,
         required: true,
         unique: true
+    },
+    about: {
+        type: String,
+        required: true
     },
     password: {
         type: String,
@@ -22,8 +26,14 @@ const userSchema = new mongoose.Schema({
     },
     agreeToTerms: {
         type: Boolean,
+        required: true
+    },
+
+    profileImage: {
+        type: String,
         required: false
     },
+
     salt: {
         type: String,
         required: false
@@ -32,7 +42,7 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Event',
         required: false
-      }],
+    }],
     created_at: {
         type: Date,
         default: Date.now
@@ -42,6 +52,15 @@ const userSchema = new mongoose.Schema({
         required: true,
         enum: ['user', 'admin'],
         default: 'user'
+    },
+    type: {
+        type: String,
+        required: true,
+        enum: ['student', 'mentor'],
+    },
+    subjects: {
+        type: Array,
+        required: true,
     }
 })
 
